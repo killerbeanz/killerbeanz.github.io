@@ -2,6 +2,7 @@ const answerInput = document.getElementById('answer');
 const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
 const feedback = document.getElementById('feedback');
+const averageScoreDisplay = document.getElementById('average-score');
 
 let allProblems = [];
 let buffer = [];
@@ -45,6 +46,7 @@ function loadScores() {
       }
     }
   }
+  updateAverageScore();
 }
 
 function saveScores() {
@@ -55,8 +57,15 @@ function saveScores() {
     }
   }
   localStorage.setItem('multiplicationScores', JSON.stringify(scores));
+  updateAverageScore();
 }
 
+function updateAverageScore() {
+  const seenProblems = allProblems.filter(p => p.score > 0);
+  const total = seenProblems.reduce((sum, p) => sum + p.score, 0);
+  const average = seenProblems.length > 0 ? (total / seenProblems.length).toFixed(2) : 0;
+  averageScoreDisplay.textContent = `Average Score: ${average}`;
+}
 
 function initializeBuffer() {
   allProblems.sort((a, b) => a.score - b.score);
@@ -126,9 +135,9 @@ function checkAnswer() {
   }
 }
 
-
 answerInput.addEventListener('input', checkAnswer);
 
+// Initialization
 allProblems = createProblemList();
 loadScores();
 initializeBuffer();
