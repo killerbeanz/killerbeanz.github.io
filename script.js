@@ -2,7 +2,7 @@ const answerInput = document.getElementById('answer');
 const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
 const feedback = document.getElementById('feedback');
-const averageScoreDisplay = document.getElementById('average-score');
+const ScoreDisplay = document.getElementById('score');
 
 let allProblems = [];
 let buffer = [];
@@ -60,10 +60,8 @@ function cycleProblem(problem) {
   }
 }
 
-function updateAverageScore() {
-  const totalPossible = allProblems.length;
-  const average = (correctCount / totalPossible).toFixed(6);
-  averageScoreDisplay.textContent = `Average Score: ${average}`;
+function updateScore() {
+  document.getElementById('score').textContent = `Score: ${correctCount}`;
 }
 
 function showProblem() {
@@ -113,5 +111,5 @@ answerInput.addEventListener('input', checkAnswer);
 // Init
 allProblems = createProblemList();
 initializeBuffer();
-updateAverageScore();
+updateScore();
 showProblem();
