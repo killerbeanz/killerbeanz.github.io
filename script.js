@@ -2,7 +2,7 @@ const answerInput = document.getElementById('answer');
 const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
 const feedback = document.getElementById('feedback');
-const ScoreDisplay = document.getElementById('score');
+const scoreDisplay = document.getElementById('score');
 
 let allProblems = [];
 let buffer = [];
@@ -13,7 +13,7 @@ let showingAnswer = false;
 let correctCount = 0;
 
 const min = 2;
-const max = 99;
+const max = 99; // change if you want more difficulty
 const bufferSize = 100;
 
 function createProblemList() {
@@ -36,11 +36,6 @@ function createProblemList() {
   return list;
 }
 
-function initializeBuffer() {
-  shuffleArray(allProblems);
-  buffer = allProblems.slice(0, bufferSize).map(p => ({ ...p, score: 0 }));
-}
-
 function shuffleArray(array) {
   for (let i = array.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
@@ -48,20 +43,34 @@ function shuffleArray(array) {
   }
 }
 
+function initializeBuffer() {
+  shuffleArray(allProblems);
+  buffer = allProblems.slice(0, bufferSize);
+}
+
 function pickFromBuffer() {
   return buffer[Math.floor(Math.random() * buffer.length)];
 }
 
 function cycleProblem(problem) {
-  const index = buffer.indexOf(problem);
-  if (index !== -1) {
-    buffer.splice(index, 1); // remove from current position
-    buffer.push({ ...problem, score: 0 }); // reset score and push to end
-  }
-}
+  const bufferIndex = buffer.indexOf(problem);
+  const allIndex = allProblems.indexOf(problem);
 
-function updateScore() {
-  document.getElementById('score').textContent = `Score: ${correctCount}`;
+  if (bufferIndex !== -1) {
+    buffer.splice(bufferIndex, 1);
+  }
+
+  if (allIndex !== -1) {
+    allProblems.splice(allIndex, 1);
+    allProblems.push(problem);
+  }
+
+  // Fill buffer with the next unseen item from allProblems
+  while (buffer.length < bufferSize && buffer.length < allProblems.length) {
+    const next = allProblems.find(p => !buffer.includes(p));
+    if (!next) break;
+    buffer.push(next);
+  }
 }
 
 function showProblem() {
@@ -86,6 +95,10 @@ function updateTimer() {
   }
 }
 
+function updateScore() {
+  scoreDisplay.textContent = `Score: ${correctCount}`;
+}
+
 function checkAnswer() {
   const val = parseInt(answerInput.value.trim());
   if (showingAnswer) {
@@ -100,15 +113,15 @@ function checkAnswer() {
     clearInterval(timer);
     correctCount++;
     feedback.textContent = 'Correct!';
-    updateAverageScore();
-    cycleProblem(currentProblem); // move it to the end of buffer
+    updateScore();
+    cycleProblem(currentProblem);
     showProblem();
   }
 }
 
 answerInput.addEventListener('input', checkAnswer);
 
-// Init
+// Initialize game
 allProblems = createProblemList();
 initializeBuffer();
 updateScore();
