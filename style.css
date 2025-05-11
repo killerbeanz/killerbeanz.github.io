@@ -51,24 +51,8 @@ h1 {
   font-size: 16px;
 }
 
-#score, #misses, #streak {
+#score {
   margin-bottom: 10px;
-}
-
-#progress-bar-container {
-  width: 100%;
-  background-color: #eee;
-  height: 20px;
-  border-radius: 10px;
-  margin: 10px 0;
-}
-
-#progress-bar {
-  height: 100%;
-  width: 0%;
-  background-color: #4caf50;
-  border-radius: 10px;
-  transition: width 0.3s;
 }
 
 button {
