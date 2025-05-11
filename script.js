@@ -10,9 +10,10 @@ let currentProblem = null;
 let timer = null;
 let timeLeft = 5;
 let showingAnswer = false;
+let correctCount = 0;
 
 const min = 2;
-const max = 999;
+const max = 99;
 const bufferSize = 100;
 
 function createProblemList() {
@@ -27,8 +28,7 @@ function createProblemList() {
           a: a,
           b: b,
           answer: a * b,
-          key: key,
-          score: 0
+          key: key
         });
       }
     }
@@ -36,61 +36,34 @@ function createProblemList() {
   return list;
 }
 
-function loadScores() {
-  const saved = localStorage.getItem('multiplicationScores');
-  if (saved) {
-    const scores = JSON.parse(saved);
-    for (const item of allProblems) {
-      if (scores[item.key] !== undefined) {
-        item.score = scores[item.key];
-      }
-    }
-  }
-  updateAverageScore();
-}
-
-function saveScores() {
-  const scores = {};
-  for (const item of allProblems) {
-    if (item.score > 0) {
-      scores[item.key] = item.score;
-    }
-  }
-  localStorage.setItem('multiplicationScores', JSON.stringify(scores));
-  updateAverageScore();
-}
-
-function updateAverageScore() {
-  const total = allProblems.reduce((sum, p) => sum + p.score, 0);
-  const average = (total / allProblems.length).toFixed(6);
-  averageScoreDisplay.textContent = `Average Score: ${average}`;
-}
-
 function initializeBuffer() {
-  allProblems.sort((a, b) => a.score - b.score);
-  buffer = allProblems.slice(0, bufferSize);
+  shuffleArray(allProblems);
+  buffer = allProblems.slice(0, bufferSize).map(p => ({ ...p, score: 0 }));
+}
+
+function shuffleArray(array) {
+  for (let i = array.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [array[i], array[j]] = [array[j], array[i]];
+  }
 }
 
 function pickFromBuffer() {
   return buffer[Math.floor(Math.random() * buffer.length)];
 }
 
-function updateBuffer() {
-  const minScore = Math.min(...buffer.map(p => p.score));
-  const threshold = minScore + 3;
-
-  const toReplace = buffer.filter(p => p.score >= threshold);
-  for (const item of toReplace) {
-    const index = buffer.indexOf(item);
-    if (index !== -1) {
-      for (const next of allProblems) {
-        if (!buffer.includes(next) && next.score === minScore) {
-          buffer[index] = next;
-          break;
-        }
-      }
-    }
+function cycleProblem(problem) {
+  const index = buffer.indexOf(problem);
+  if (index !== -1) {
+    buffer.splice(index, 1); // remove from current position
+    buffer.push({ ...problem, score: 0 }); // reset score and push to end
   }
+}
+
+function updateAverageScore() {
+  const totalPossible = allProblems.length;
+  const average = (correctCount / totalPossible).toFixed(6);
+  averageScoreDisplay.textContent = `Average Score: ${average}`;
 }
 
 function showProblem() {
@@ -124,20 +97,21 @@ function checkAnswer() {
     }
     return;
   }
+
   if (val === currentProblem.answer) {
     clearInterval(timer);
-    currentProblem.score += 1;
-    saveScores();
-    updateBuffer();
+    correctCount++;
     feedback.textContent = 'Correct!';
+    updateAverageScore();
+    cycleProblem(currentProblem); // move it to the end of buffer
     showProblem();
   }
 }
 
 answerInput.addEventListener('input', checkAnswer);
 
-// Initialization
+// Init
 allProblems = createProblemList();
-loadScores();
 initializeBuffer();
+updateAverageScore();
 showProblem();
