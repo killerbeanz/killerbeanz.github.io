@@ -1,0 +1,42 @@
+body {
+    font-family: Arial, sans-serif;
+    background-color: #222;
+    color: #fff;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    margin: 0;
+  }
+  
+  .game-container {
+    text-align: center;
+  }
+  
+  #equation {
+    font-size: 2rem;
+    margin-bottom: 1rem;
+  }
+  
+  #answer {
+    font-size: 1.5rem;
+    padding: 0.5rem;
+    width: 100px;
+  }
+  
+  #timer {
+    font-size: 1.2rem;
+    margin-top: 1rem;
+  }
+  
+  #submit {
+    margin-top: 1rem;
+    padding: 0.5rem 1rem;
+    font-size: 1rem;
+  }
+  
+  #feedback {
+    margin-top: 1rem;
+    font-size: 1.2rem;
+  }
+  
