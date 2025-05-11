@@ -118,9 +118,11 @@ function checkAnswer() {
     currentProblem.score += 1;
     saveScores();
     updateBuffer();
+    feedback.textContent = 'Correct!';
     showProblem();
   }
 }
+
 
 answerInput.addEventListener('input', checkAnswer);
 
