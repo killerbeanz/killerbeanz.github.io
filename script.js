@@ -6,6 +6,9 @@ const feedback = document.getElementById('feedback');
 let allProblems = [];
 let buffer = [];
 let currentProblem = null;
+let timer = null;
+let timeLeft = 5;
+let showingAnswer = false;
 
 const min = 2;
 const max = 999;
@@ -80,16 +83,38 @@ function updateBuffer() {
 }
 
 function showProblem() {
+  clearInterval(timer);
+  showingAnswer = false;
   currentProblem = pickFromBuffer();
   equationDisplay.textContent = `${currentProblem.a} x ${currentProblem.b} = ?`;
   answerInput.value = '';
   feedback.textContent = '';
-  timerDisplay.textContent = '5';
+  timeLeft = 5;
+  timerDisplay.textContent = timeLeft;
+  timer = setInterval(updateTimer, 1000);
+}
+
+function updateTimer() {
+  timeLeft--;
+  timerDisplay.textContent = timeLeft;
+  if (timeLeft <= 0) {
+    clearInterval(timer);
+    feedback.textContent = `Time's up! Type: ${currentProblem.answer}`;
+    showingAnswer = true;
+  }
 }
 
 function checkAnswer() {
   const val = parseInt(answerInput.value.trim());
+  if (showingAnswer) {
+    if (val === currentProblem.answer) {
+      feedback.textContent = '';
+      showProblem();
+    }
+    return;
+  }
   if (val === currentProblem.answer) {
+    clearInterval(timer);
     currentProblem.score += 1;
     saveScores();
     updateBuffer();
