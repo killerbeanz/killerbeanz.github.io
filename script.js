@@ -3,9 +3,6 @@ const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
 const feedback = document.getElementById('feedback');
 const scoreDisplay = document.getElementById('score');
-const missesDisplay = document.getElementById('misses');
-const streakDisplay = document.getElementById('streak');
-const progressBar = document.getElementById('progress-bar');
 const resetButton = document.getElementById('reset');
 
 let allProblems = [];
@@ -16,8 +13,6 @@ let timeLeft = 5;
 let showingAnswer = false;
 
 let correctCount = 0;
-let missCount = 0;
-let streakCount = 0;
 
 const min = 2;
 const max = 101; // 2x101 as max
@@ -63,10 +58,6 @@ function cycleProblem(problem) {
 
 function updateStats() {
   scoreDisplay.textContent = `Score: ${correctCount}`;
-  missesDisplay.textContent = `Misses: ${missCount}`;
-  streakDisplay.textContent = `Streak: ${streakCount}`;
-  const progress = (correctCount / allProblems.length) * 100;
-  progressBar.style.width = `${progress.toFixed(1)}%`;
 }
 
 function showProblem() {
@@ -88,8 +79,6 @@ function updateTimer() {
     clearInterval(timer);
     feedback.textContent = `Time's up! Type: ${currentProblem.answer}`;
     showingAnswer = true;
-    missCount++;
-    streakCount = 0;
     updateStats();
   }
 }
@@ -107,7 +96,6 @@ function checkAnswer() {
   if (val === currentProblem.answer) {
     clearInterval(timer);
     correctCount++;
-    streakCount++;
     feedback.textContent = 'Correct!';
     updateStats();
     cycleProblem(currentProblem);
@@ -117,8 +105,6 @@ function checkAnswer() {
 
 function resetGame() {
   correctCount = 0;
-  missCount = 0;
-  streakCount = 0;
   allProblems = createProblemList();
   initializeBuffer();
   updateStats();
