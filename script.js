@@ -20,7 +20,7 @@ let missCount = 0;
 let streakCount = 0;
 
 const min = 2;
-const max = 99;
+const max = 999;
 const bufferSize = 100;
 
 function createProblemList() {
