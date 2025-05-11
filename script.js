@@ -50,10 +50,13 @@ function loadScores() {
 function saveScores() {
   const scores = {};
   for (const item of allProblems) {
-    scores[item.key] = item.score;
+    if (item.score > 0) {
+      scores[item.key] = item.score;
+    }
   }
   localStorage.setItem('multiplicationScores', JSON.stringify(scores));
 }
+
 
 function initializeBuffer() {
   allProblems.sort((a, b) => a.score - b.score);
