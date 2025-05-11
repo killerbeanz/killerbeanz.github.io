@@ -61,9 +61,8 @@ function saveScores() {
 }
 
 function updateAverageScore() {
-  const seenProblems = allProblems.filter(p => p.score > 0);
-  const total = seenProblems.reduce((sum, p) => sum + p.score, 0);
-  const average = seenProblems.length > 0 ? (total / seenProblems.length).toFixed(6) : 0;
+  const total = allProblems.reduce((sum, p) => sum + p.score, 0);
+  const average = (total / allProblems.length).toFixed(6);
   averageScoreDisplay.textContent = `Average Score: ${average}`;
 }
 
