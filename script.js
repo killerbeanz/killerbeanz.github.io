@@ -20,38 +20,26 @@ let missCount = 0;
 let streakCount = 0;
 
 const min = 2;
-const max = 999;
+const max = 101; // 2x101 as max
 const bufferSize = 100;
 
 function createProblemList() {
-  const seen = new Set();
   const list = [];
   for (let a = min; a <= max; a++) {
     for (let b = min; b <= max; b++) {
-      const key = [a, b].sort((x, y) => x - y).join('x');
-      if (!seen.has(key)) {
-        seen.add(key);
-        list.push({
-          a: a,
-          b: b,
-          answer: a * b,
-          key: key
-        });
-      }
+      list.push({
+        a: a,
+        b: b,
+        answer: a * b,
+        key: `${a}x${b}`
+      });
     }
   }
   return list;
 }
 
-function shuffleArray(array) {
-  for (let i = array.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [array[i], array[j]] = [array[j], array[i]];
-  }
-}
-
 function initializeBuffer() {
-  shuffleArray(allProblems);
+  // Initialize buffer with problems from 2x2 to 2x101
   buffer = allProblems.slice(0, bufferSize);
 }
 
@@ -60,20 +48,16 @@ function pickFromBuffer() {
 }
 
 function cycleProblem(problem) {
+  // Remove the problem from the buffer and add it to the end of the allProblems list
   const bufferIndex = buffer.indexOf(problem);
-  const allIndex = allProblems.indexOf(problem);
-
   if (bufferIndex !== -1) buffer.splice(bufferIndex, 1);
-  if (allIndex !== -1) {
-    allProblems.splice(allIndex, 1);
-    allProblems.push(problem);
-  }
 
-  // Fill buffer from the front of allProblems
-  while (buffer.length < bufferSize && buffer.length < allProblems.length) {
+  allProblems.push(problem);
+
+  // Refills the buffer if it’s underfilled
+  while (buffer.length < bufferSize && allProblems.length > buffer.length) {
     const next = allProblems.find(p => !buffer.includes(p));
-    if (!next) break;
-    buffer.push(next);
+    if (next) buffer.push(next);
   }
 }
 
