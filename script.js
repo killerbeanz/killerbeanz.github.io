@@ -3,6 +3,10 @@ const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
 const feedback = document.getElementById('feedback');
 const scoreDisplay = document.getElementById('score');
+const missesDisplay = document.getElementById('misses');
+const streakDisplay = document.getElementById('streak');
+const progressBar = document.getElementById('progress-bar');
+const resetButton = document.getElementById('reset');
 
 let allProblems = [];
 let buffer = [];
@@ -10,10 +14,13 @@ let currentProblem = null;
 let timer = null;
 let timeLeft = 5;
 let showingAnswer = false;
+
 let correctCount = 0;
+let missCount = 0;
+let streakCount = 0;
 
 const min = 2;
-const max = 99; // change if you want more difficulty
+const max = 99;
 const bufferSize = 100;
 
 function createProblemList() {
@@ -56,21 +63,26 @@ function cycleProblem(problem) {
   const bufferIndex = buffer.indexOf(problem);
   const allIndex = allProblems.indexOf(problem);
 
-  if (bufferIndex !== -1) {
-    buffer.splice(bufferIndex, 1);
-  }
-
+  if (bufferIndex !== -1) buffer.splice(bufferIndex, 1);
   if (allIndex !== -1) {
     allProblems.splice(allIndex, 1);
     allProblems.push(problem);
   }
 
-  // Fill buffer with the next unseen item from allProblems
+  // Fill buffer from the front of allProblems
   while (buffer.length < bufferSize && buffer.length < allProblems.length) {
     const next = allProblems.find(p => !buffer.includes(p));
     if (!next) break;
     buffer.push(next);
   }
+}
+
+function updateStats() {
+  scoreDisplay.textContent = `Score: ${correctCount}`;
+  missesDisplay.textContent = `Misses: ${missCount}`;
+  streakDisplay.textContent = `Streak: ${streakCount}`;
+  const progress = (correctCount / allProblems.length) * 100;
+  progressBar.style.width = `${progress.toFixed(1)}%`;
 }
 
 function showProblem() {
@@ -92,11 +104,10 @@ function updateTimer() {
     clearInterval(timer);
     feedback.textContent = `Time's up! Type: ${currentProblem.answer}`;
     showingAnswer = true;
+    missCount++;
+    streakCount = 0;
+    updateStats();
   }
-}
-
-function updateScore() {
-  scoreDisplay.textContent = `Score: ${correctCount}`;
 }
 
 function checkAnswer() {
@@ -112,17 +123,29 @@ function checkAnswer() {
   if (val === currentProblem.answer) {
     clearInterval(timer);
     correctCount++;
+    streakCount++;
     feedback.textContent = 'Correct!';
-    updateScore();
+    updateStats();
     cycleProblem(currentProblem);
     showProblem();
   }
 }
 
+function resetGame() {
+  correctCount = 0;
+  missCount = 0;
+  streakCount = 0;
+  allProblems = createProblemList();
+  initializeBuffer();
+  updateStats();
+  showProblem();
+}
+
 answerInput.addEventListener('input', checkAnswer);
+resetButton.addEventListener('click', resetGame);
 
 // Initialize game
 allProblems = createProblemList();
 initializeBuffer();
-updateScore();
+updateStats();
 showProblem();
