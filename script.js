@@ -1,112 +1,105 @@
 const answerInput = document.getElementById('answer');
 const equationDisplay = document.getElementById('equation');
 const timerDisplay = document.getElementById('timer');
-const submitButton = document.getElementById('submit');
 const feedback = document.getElementById('feedback');
 
-let timer;
-let timeLeft = 5;
-let currentPair = null;
-let showingAnswer = false;
+let allProblems = [];
+let buffer = [];
+let currentProblem = null;
 
 const min = 2;
 const max = 999;
+const bufferSize = 100;
 
-function getPairs() {
-  const pairs = [];
-  for (let i = min; i <= max; i++) {
-    for (let j = i; j <= max; j++) {
-      pairs.push([i, j]);
+function createProblemList() {
+  const seen = new Set();
+  const list = [];
+  for (let a = min; a <= max; a++) {
+    for (let b = min; b <= max; b++) {
+      const key = [a, b].sort((x, y) => x - y).join('x');
+      if (!seen.has(key)) {
+        seen.add(key);
+        list.push({
+          a: a,
+          b: b,
+          answer: a * b,
+          key: key,
+          score: 0
+        });
+      }
     }
   }
-  return pairs;
+  return list;
 }
 
 function loadScores() {
-  const data = localStorage.getItem('multiplicationScores');
-  return data ? JSON.parse(data) : {};
+  const saved = localStorage.getItem('multiplicationScores');
+  if (saved) {
+    const scores = JSON.parse(saved);
+    for (const item of allProblems) {
+      if (scores[item.key] !== undefined) {
+        item.score = scores[item.key];
+      }
+    }
+  }
 }
 
-function saveScores(scores) {
+function saveScores() {
+  const scores = {};
+  for (const item of allProblems) {
+    scores[item.key] = item.score;
+  }
   localStorage.setItem('multiplicationScores', JSON.stringify(scores));
 }
 
-function pickNext(scores, pairs) {
-  let minScore = Infinity;
-  let candidates = [];
+function initializeBuffer() {
+  allProblems.sort((a, b) => a.score - b.score);
+  buffer = allProblems.slice(0, bufferSize);
+}
 
-  for (const [a, b] of pairs) {
-    const key = `${a}x${b}`;
-    const score = scores[key] || 0;
-    if (score < minScore) {
-      minScore = score;
-      candidates = [[a, b]];
-    } else if (score === minScore) {
-      candidates.push([a, b]);
+function pickFromBuffer() {
+  return buffer[Math.floor(Math.random() * buffer.length)];
+}
+
+function updateBuffer() {
+  const minScore = Math.min(...buffer.map(p => p.score));
+  const threshold = minScore + 3;
+
+  const toReplace = buffer.filter(p => p.score >= threshold);
+  for (const item of toReplace) {
+    const index = buffer.indexOf(item);
+    if (index !== -1) {
+      for (const next of allProblems) {
+        if (!buffer.includes(next) && next.score === minScore) {
+          buffer[index] = next;
+          break;
+        }
+      }
     }
   }
-
-  return candidates[Math.floor(Math.random() * candidates.length)];
 }
 
-function startTimer() {
-  timeLeft = 5;
-  timerDisplay.textContent = timeLeft;
-  timer = setInterval(() => {
-    timeLeft--;
-    timerDisplay.textContent = timeLeft;
-    if (timeLeft <= 0) {
-      clearInterval(timer);
-      showAnswer();
-    }
-  }, 1000);
-}
-
-function showEquation() {
-  const scores = loadScores();
-  const pairs = getPairs();
-  currentPair = pickNext(scores, pairs);
-  equationDisplay.textContent = `${currentPair[0]} x ${currentPair[1]} = ?`;
+function showProblem() {
+  currentProblem = pickFromBuffer();
+  equationDisplay.textContent = `${currentProblem.a} x ${currentProblem.b} = ?`;
   answerInput.value = '';
   feedback.textContent = '';
-  showingAnswer = false;
-  startTimer();
+  timerDisplay.textContent = '5';
 }
 
-function showAnswer() {
-  showingAnswer = true;
-  feedback.textContent = `Time's up! Correct answer: ${currentPair[0] * currentPair[1]}. Type it to continue.`;
-}
-
-function handleSubmit() {
-  const input = parseInt(answerInput.value.trim());
-  const correct = currentPair[0] * currentPair[1];
-
-  if (isNaN(input)) return;
-
-  if (showingAnswer) {
-    if (input === correct) {
-      showEquation();
-    } else {
-      feedback.textContent = `Type the correct answer to continue: ${correct}`;
-    }
-  } else {
-    clearInterval(timer);
-    if (input === correct) {
-      const scores = loadScores();
-      const key = `${currentPair[0]}x${currentPair[1]}`;
-      scores[key] = (scores[key] || 0) + 1;
-      saveScores(scores);
-      showEquation();
-    } else {
-      showAnswer();
-    }
+function checkAnswer() {
+  const val = parseInt(answerInput.value.trim());
+  if (val === currentProblem.answer) {
+    currentProblem.score += 1;
+    saveScores();
+    updateBuffer();
+    showProblem();
   }
 }
 
-submitButton.addEventListener('click', handleSubmit);
-answerInput.addEventListener('keydown', (e) => {
-  if (e.key === 'Enter') handleSubmit();
-});
+answerInput.addEventListener('input', checkAnswer);
 
-showEquation();
+allProblems = createProblemList();
+loadScores();
+initializeBuffer();
+showProblem();
